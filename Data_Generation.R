@@ -60,7 +60,7 @@ create_sim_repped <- function(sim.structure , num.conds = nrow(sim.structure) ,
 }
 
 #generate data from repped data conditions database
-reg_gen_pres <- function(n , beta , eta.x , eta.y , seed , iter) {      #Actual data generation
+reg_gen <- function(n , beta , eta.x , eta.y , seed , iter) {      #Actual data generation
        beta <- beta  #store beta value
        seed <- seed  #store seed
        #generate uncontam. X values
@@ -91,7 +91,7 @@ reg_gen_pres <- function(n , beta , eta.x , eta.y , seed , iter) {      #Actual 
 sim.repped <- create_sim_repped(sim.structure = sim.structure , num.pars = 4 , num.iters = 5)
 
 bayes.data.pres <- sim.repped %>%   
-       pmap(reg_gen_pres)
+       pmap(reg_gen)
 
 
 
@@ -100,7 +100,7 @@ bayes.data.pres <- sim.repped %>%
 
 
 #extract important model info from generated analyses
-extract.info <- function(data , n.iter) {
+extract_info <- function(data , n.iter) {
        R2 <- numeric(n.iter)
        model.Int <- data.frame(matrix(nrow = n.iter , ncol = 7))
        model.B <- data.frame(matrix(nrow = n.iter , ncol = 7))
@@ -236,7 +236,7 @@ FreqInBayes.CV <- function(data , freq_K , K , Diffusion ,
               R2.mf <- mf$adj.r.squared
               summ.mf <- mf$coefficients
        }
-       FreqInBayes <- extract.info(data = out , n.iter = K)
+       FreqInBayes <- extract_info(data = out , n.iter = K)
        
        return(list(Conditions = data[[4]],
                    FreqInBayes = FreqInBayes , 
