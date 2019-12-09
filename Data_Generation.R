@@ -88,7 +88,7 @@ reg_gen <- function(n , beta , eta.x , eta.y , seed , iter) {      #Actual data 
        return(combine)                       #save combined list of all values
 }
 
-sim.repped <- create_sim_repped(sim.structure = sim.structure , num.pars = 4 , num.iters = 5)
+sim.repped <- create_sim_repped(sim.structure = sim.structure , num.pars = 4 , num.iters = 10)
 
 bayes.data.pres <- sim.repped %>%   
        pmap(reg_gen)
