@@ -205,13 +205,15 @@ FreqInBayes.CV <- function(data , freq_K , K , Diffusion ,
                             var_ypred.m1 <- apply(ypred.m1 , 1 , var) 
                             var_e.m1 <- apply(e.m1, 1, var) 
                             Bayes_R2.m1 <- var_ypred.m1 / (var_ypred.m1 + var_e.m1)
-                            looic.m1 <- loo(m1)$estimates["looic" , ]
-                            pred.m1 <- predict(m1)[ , "Estimate"]
-                            MSE.m1 <- sqrt(sum(Y - pred.m1)^2 , length(Y))
+                            loo.m1 <- loo(m1)
+                            looic.m1 <- loo.m1$estimates["looic" , ]
+                            predict.m1 <- predict(m1)
+                            pred.m1 <- predict.m1[ , "Estimate"]
+                            MSE.m1 <- sqrt(sum(Y - pred.m1)^2 / length(Y))
                      }
                      
                      out[[i]] <- list(Bayes_R2.m1 = median(Bayes_R2.m1) , 
-                                      MSE = mse.m1 , looic.m1 = looic.m1 ,
+                                      MSE = MSE.m1 , looic.m1 = looic.m1 ,
                                       Summary = summ.m1)
               }
               
@@ -233,9 +235,11 @@ FreqInBayes.CV <- function(data , freq_K , K , Diffusion ,
               var_e.m0 <- apply(e.m0, 1, var) 
               Bayes_R2.m0 <- var_ypred.m0 / (var_ypred.m0 + var_e.m0)
               Bayes_R2.m0 <- median(Bayes_R2.m0)
-              looic.m0 <- loo(m0)$estimates["looic" , ]
-              pred.m0 <- predict(m0)[ , "Estimate"]
-              MSE.m0 <- sqrt(sum(Y - pred.m0)^2 , length(Y))
+              loo.m0 <- loo(m0)
+              looic.m0 <- loo.m0$estimates["looic" , ]
+              predict.m0 <- predict(m0)
+              pred.m0 <- predict.m0[ , "Estimate"]
+              MSE.m0 <- sqrt(sum(Y - pred.m0)^2 / length(Y))
        }
        #frequentist model
        {
@@ -244,18 +248,18 @@ FreqInBayes.CV <- function(data , freq_K , K , Diffusion ,
               multR2.mf <- mf$r.squared
               summ.mf <- mf$coefficients
               ResSE.mf <- mf$sigma
-              mse.mf <- sqrt( sum(summary$residuals)^2 / length(Y) )
+              MSE.mf <- sqrt( sum(mf$residuals)^2 / length(Y) )
        }
        FreqInBayes <- extract_info(data = out , n.iter = K)
-       
+       cat("testFin \n")
        return(list(Conditions = data[[4]],
                    FreqInBayes = FreqInBayes , 
                    UnInBayes = list(Bayes_R2 = Bayes_R2.m0 , 
-                                    MSE = mse.m0 , looic = looic.m0 ,
+                                    MSE = MSE.m0 , looic = looic.m0 ,
                                     model.Int = summ.m0[1 , ] , 
                                     model.B = summ.m0[2 , ]) , 
                    FreqLm = list(Adj_R2 = adjR2.mf , Mult_R2 = multR2.mf ,
-                                 MSE = mse.mf , 
+                                 MSE = MSE.mf , 
                                  model.SE = ResSE.mf , 
                                  model.Int = summ.mf[1 , ] , 
                                  model.B = summ.mf[2 , ])
@@ -265,8 +269,14 @@ FreqInBayes.CV <- function(data , freq_K , K , Diffusion ,
 
 
 
-pres.out <- lapply(bayes.data.pres , FreqInBayes.CV , freq_K = 5 , K = 5 , 
-                   Diffusion = 0.1 , family_brms = "gaussian")
+BayesOut.full <- bayes.data.pres[1:2] %>%   
+        map(safely(FreqInBayes.CV) , freq_K = 5 , K = 5 , Diffusion = 0.1 , 
+            family_brms = "gaussian")
+
+
+
+#pres.out <- lapply(bayes.data.pres[1:2] , FreqInBayes.CV , freq_K = 5 , K = 5 , 
+#                   Diffusion = 0.1 , family_brms = "gaussian")
 
 saveRDS(bayes.data.pres , "/Users/Matt Multach/Desktop/Bayes_Data/bayes_data_121119.RData")
-saveRDS(pres.out , "/Users/Matt Multach/Desktop/Bayes_Data/bayes_output_121119.RData")
+saveRDS(BayesOut.full , "/Users/Matt Multach/Desktop/Bayes_Data/bayes_output_121119.RData")
