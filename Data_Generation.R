@@ -205,9 +205,11 @@ FreqInBayes.CV <- function(data , freq_K , K , Diffusion ,
                             var_ypred.m1 <- apply(ypred.m1 , 1 , var) 
                             var_e.m1 <- apply(e.m1, 1, var) 
                             Bayes_R2.m1 <- var_ypred.m1 / (var_ypred.m1 + var_e.m1)
+                            looic.m1 <- loo(m1)$estimates["looic" , ]
                      }
                      
                      out[[i]] <- list(Bayes_R2.m1 = median(Bayes_R2.m1) , 
+                                      looic.m1 = looic.m1 ,
                                       Summary = summ.m1)
               }
               
@@ -229,21 +231,26 @@ FreqInBayes.CV <- function(data , freq_K , K , Diffusion ,
               var_e.m0 <- apply(e.m0, 1, var) 
               Bayes_R2.m0 <- var_ypred.m0 / (var_ypred.m0 + var_e.m0)
               Bayes_R2.m0 <- median(Bayes_R2.m0)
+              looic.m0 <- loo(m0)$estimates["looic" , ]
        }
        #frequentist model
        {
               mf <- summary(lm(Y ~ X , data = temp))
-              R2.mf <- mf$adj.r.squared
+              adjR2.mf <- mf$adj.r.squared
+              multR2.mf <- mf$r.squared
               summ.mf <- mf$coefficients
+              ResSE.mf <- mf$sigma
        }
        FreqInBayes <- extract_info(data = out , n.iter = K)
        
        return(list(Conditions = data[[4]],
                    FreqInBayes = FreqInBayes , 
                    UnInBayes = list(Bayes_R2 = Bayes_R2.m0 , 
+                                    looic = looic.m0 ,
                                     model.Int = summ.m0[1 , ] , 
                                     model.B = summ.m0[2 , ]) , 
-                   FreqLm = list(Adj_R2 = R2.mf , 
+                   FreqLm = list(Adj_R2 = adjR2.mf , Mult_R2 = multR2.mf ,
+                                 model.SE = ResSE.mf , 
                                  model.Int = summ.mf[1 , ] , 
                                  model.B = summ.mf[2 , ])
        )
